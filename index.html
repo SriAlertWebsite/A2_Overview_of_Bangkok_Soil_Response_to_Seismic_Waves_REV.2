@@ -1,0 +1,512 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><title>แผนที่แสดงตำแหน่งทดสอบ HVSR และ CCA พร้อมข้อมูลความถี่พื้นฐาน คาบการสั่นพื้นฐาน และคุณสมบัติความเร็วคลื่นเฉือนของชั้นดินในพื้นที่กรุงเทพมหานคร</title>
+<link rel="stylesheet" href="css/leaflet.css"><link rel="stylesheet" href="css/L.Control.Layers.Tree.css"><link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css"><link rel="stylesheet" href="css/leaflet.photon.css"><style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        :root{--navy:#142d4c;--navy2:#234669;--teal:#087e89;--ink:#19324e;--muted:#65758a;--line:#e5ebf2;--surface:#fff;--bg:#f5f8fb;--red:#dd3447}
+        *{box-sizing:border-box}html,body{font-family:Tahoma,'Noto Sans Thai',Arial,sans-serif;background:var(--bg);color:var(--ink)}
+        .app{height:100dvh;display:flex;overflow:hidden}
+        .topbar{display:none}
+        .brand{display:flex;align-items:center;gap:13px}.logo{height:43px;width:43px;border-radius:12px;background:var(--navy);color:#fff;display:grid;place-items:center;font:bold 15px Arial;letter-spacing:.3px}
+        .brand small{display:block;color:#708096;font-size:11px;letter-spacing:.06em;margin-bottom:3px;font-weight:700}.brand strong{font-size:17px;letter-spacing:-.25px;color:var(--navy)}
+        .top-right{display:flex;align-items:center;gap:12px;color:#6b7b91;font-size:12px}.status-dot{width:8px;height:8px;background:#159b83;border-radius:50%;display:inline-block;margin-right:6px}
+        .workspace{flex:1;display:flex;min-height:0;position:relative;width:100%}.map-area{flex:1;min-width:0;position:relative}#map{width:100%;height:100%;background:#e9eef2}
+        .map-label{position:absolute;top:18px;left:18px;z-index:700;background:#fff;padding:16px 20px;border:1px solid var(--line);border-radius:8px;box-shadow:0 7px 26px #17385e20;pointer-events:none;max-width:650px;width:min(650px,calc(100% - 42px))}
+        .map-label strong{font-size:20px;display:block;line-height:1.4}.map-label span{display:none}
+        .map-legend{position:absolute;bottom:24px;left:18px;z-index:700;background:#fff;padding:13px 16px;border-radius:8px;box-shadow:0 5px 18px #17385e20;font-size:15px;display:flex;gap:18px;align-items:center;pointer-events:none}
+        .red-dot{background:var(--red);border:2px solid #a41c2c;width:12px;height:12px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:5px}
+        .line-dot{width:16px;border-top:2px solid #254b6b;display:inline-block;vertical-align:middle;margin-right:5px}
+        .sidebar{width:390px;flex:0 0 390px;background:white;border-left:1px solid var(--line);z-index:900;display:flex;flex-direction:column;transition:width .3s ease,flex-basis .3s ease;overflow:hidden;box-shadow:-8px 0 26px #1a344513}
+        .sidebar.closed{width:0;flex-basis:0;border-left:0}.sidebar-inner{width:390px;min-width:390px;overflow-y:auto;height:100%;padding:28px 26px 34px}
+        .side-header{display:flex;align-items:start;justify-content:space-between;gap:10px}.eyebrow{font-size:12px;letter-spacing:.05em;color:var(--teal);font-weight:700}.side-header h2{font-size:24px;margin:8px 0 4px;line-height:1.45;color:var(--navy)}
+        .icon-btn{border:1px solid var(--line);background:#fff;border-radius:10px;height:32px;width:32px;cursor:pointer;color:#4c637c;font-size:20px;line-height:1}.icon-btn:hover{background:#eff5f8}
+        .accent{height:3px;width:52px;background:var(--teal);border-radius:20px;margin:10px 0 18px}.side-copy{font-size:15px;line-height:1.95;color:#52647a;margin:0 0 20px}
+        .info-card{background:#f5f8fb;border:1px solid #e8eef3;border-radius:10px;padding:18px;margin-bottom:18px}.info-card h3{font-size:16px;color:var(--navy);margin:0 0 14px}.measure{display:flex;align-items:start;gap:12px;font-size:14px;color:#53667b;line-height:1.75;margin:13px 0}.measure b{display:block;color:#233b52;font-size:15px;margin-bottom:2px}.num{width:28px;height:28px;min-width:28px;border-radius:8px;background:#e2eef3;color:#13717d;display:grid;place-items:center;font-weight:700;font-size:13px}.plain-bullet{width:10px;height:10px;min-width:10px;border-radius:50%;background:#1d6b90;margin-top:8px}.legend-red{width:18px;height:18px;min-width:18px;border-radius:50%;background:#db1e2a;border:2px solid #801119;margin-top:3px}.legend-square{width:18px;height:18px;min-width:18px;background:#fff;border:2px solid #000;margin-top:3px}.legend-map{width:18px;height:18px;min-width:18px;background:linear-gradient(135deg,#dfe7ef 0%,#f7fafc 100%);border:1px solid #9fb0c1;position:relative;margin-top:3px}.legend-map:before{content:'';position:absolute;left:3px;right:3px;top:8px;border-top:2px solid #7ca0c2;transform:rotate(-18deg)}.legend-check{width:18px;height:18px;min-width:18px;border:2px solid #000;background:#fff;position:relative;margin-top:3px}.legend-check:after{content:'✓';position:absolute;left:1px;top:-4px;font-size:16px;color:#0078ff;font-weight:700}
+        .research-note{padding:16px;border-left:3px solid #c29139;background:#fffaf1;border-radius:8px;margin-bottom:16px;font-size:14px;line-height:1.85;color:#625036}.research-note p{margin:6px 0 0}
+        .side-foot{border-top:1px solid var(--line);padding-top:18px;margin-top:16px;color:#718194;font-size:13px;line-height:1.85}
+        .side-toggle{position:absolute;right:390px;top:50%;transform:translateY(-50%);z-index:1000;border:0;border-radius:8px 0 0 8px;background:var(--navy);color:#fff;font-size:22px;width:36px;height:66px;cursor:pointer;box-shadow:-3px 3px 16px #18364a33;transition:right .3s}.side-toggle.closed{right:0}
+        .leaflet-control-zoom{border:0!important;box-shadow:0 5px 20px #19334a2a!important;border-radius:10px!important;overflow:hidden}.leaflet-control-zoom a{color:var(--navy)!important}
+        .leaflet-top.leaflet-left{top:164px;left:16px}.leaflet-control-layers{border:1px solid var(--line)!important;border-radius:8px!important;box-shadow:0 5px 18px #17385e17!important;font-family:inherit!important}.leaflet-control-layers-expanded{padding:10px 12px!important;font-size:15px!important}.leaflet-control-layers label{font-size:14px!important;line-height:1.8!important}
+        .leaflet-popup-content-wrapper{border-radius:0!important;overflow:hidden;padding:0!important;box-shadow:0 14px 45px #102b4850!important}.leaflet-popup-content{margin:0!important;min-width:330px!important;max-width:420px!important}.leaflet-popup-close-button{z-index:20;color:#233b52!important;top:8px!important;right:10px!important;font-size:24px!important;font-weight:700!important}
+        .hvsr-pop-wrap{padding:14px;background:#fff}.hvsr-pop-title{font-size:18px;font-weight:700;color:var(--navy);margin:0 0 10px;padding-right:22px}.hvsr-pop-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.6}.hvsr-pop-table th,.hvsr-pop-table td{border:1px solid #d8e2ec;padding:8px 10px;text-align:left;vertical-align:top}.hvsr-pop-table th{background:#eef4f9;color:#20384f;width:44%;font-weight:700}.hvsr-pop-table td{background:#fff;color:#20384f;font-weight:600}
+        .leaflet-popup-tip{box-shadow:0 4px 10px #102b4820!important}
+        @media(max-width:750px){.sidebar{position:absolute;right:0;top:0;bottom:0;width:min(90vw,390px);flex-basis:auto}.sidebar.closed{width:0}.sidebar-inner{width:min(90vw,390px);min-width:min(90vw,390px)}.side-toggle{right:min(90vw,390px)}.map-label{top:12px;left:12px;padding:12px 14px;max-width:calc(100vw - 120px)}.map-label strong{font-size:16px}.map-label span{font-size:12px}.map-legend{bottom:18px;left:10px;gap:10px;font-size:11px}.leaflet-top.leaflet-left{top:225px;left:6px}}
+
+        
+.legend-triangle{width:0;height:0;min-width:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:19px solid #d3212e;filter:drop-shadow(0 1px 0 #7b0d17);margin:0 3px 0 0}
+.legend-blue{width:19px;height:19px;min-width:19px;border-radius:50%;background:#487bb6;border:2px solid #325780;margin-top:3px}
+.map-legend .legend-triangle{display:inline-block;vertical-align:middle;transform:scale(.72);margin-right:7px}
+.map-legend .legend-blue{display:inline-block;vertical-align:middle;width:13px;height:13px;min-width:13px;margin-right:7px}
+.leaflet-popup-content{width:360px!important;max-width:calc(100vw - 60px)!important;min-width:0!important}.hvsr-pop-table{table-layout:fixed}.hvsr-pop-table td{overflow-wrap:anywhere}.leaflet-popup-content-wrapper{border:1px solid #dbe4ee}
+@media(max-width:750px){.leaflet-popup-content{width:min(340px,calc(100vw - 62px))!important}.hvsr-pop-table{font-size:12px}.hvsr-pop-title{font-size:16px}.map-legend{flex-wrap:wrap}}
+.hvsr-image-link{display:inline-block;color:#0665a4!important;text-decoration:underline!important;font-weight:700;padding:4px 0;overflow-wrap:anywhere}.hvsr-image-link:hover{color:#004775!important}
+</style></head><body><div class="app">
+<main class="workspace">
+<section aria-label="แผนที่จุดสำรวจ HVSR" class="map-area">
+<div id="map"></div>
+<div class="map-label"><strong>แผนที่แสดงตำแหน่งทดสอบ HVSR และ CCA พร้อมข้อมูลความถี่พื้นฐาน คาบการสั่นพื้นฐาน และคุณสมบัติความเร็วคลื่นเฉือนของชั้นดินในพื้นที่กรุงเทพมหานคร</strong></div>
+<div class="map-legend"><span><i class="legend-triangle"></i> HVSR</span><span><i class="legend-blue"></i> Test point</span><span><i class="line-dot"></i> ขอบเขตเขต</span></div>
+</section>
+<button aria-expanded="true" aria-label="ปิดแผงข้อมูล" class="side-toggle" id="sideToggle" type="button">›</button>
+<aside class="sidebar" id="infoSidebar">
+<div class="sidebar-inner">
+<div class="side-header"><div><h2>รายละเอียดแผนที่สำรวจ</h2></div><button aria-label="ปิดแผงข้อมูล" class="icon-btn" id="sideClose" type="button">×</button></div>
+<div class="accent"></div>
+<div class="info-card"><h3>ข้อมูลที่แสดงบนแผนที่</h3>
+<div class="measure"><span class="legend-triangle"></span><div><b>HVSR — สามเหลี่ยมสีแดง</b>คลิกสามเหลี่ยมสีแดงเพื่อดูข้อมูลการสำรวจ เช่น รหัสจุด ชื่อจุด ค่า f₀, T₀, H, Vs30, Vs100 และลิงก์รูปภาพ Vs Profile ตามข้อมูลที่มีอยู่</div></div>
+<div class="measure"><span class="legend-blue"></span><div><b>Test point — วงกลมสีฟ้า</b>คลิกวงกลมสีฟ้าเพื่อดูรหัส ชื่อจุด และพิกัดตำแหน่งจุดทดสอบ</div></div>
+<div class="measure"><span class="legend-square"></span><div><b>Bangkok_Districts</b>รูปสี่เหลี่ยมสีขาวขอบดำใช้แทนชั้นข้อมูลขอบเขตเขตกรุงเทพมหานคร เพื่ออ้างอิงตำแหน่งพื้นที่ศึกษา</div></div>
+<div class="measure"><span class="legend-map"></span><div><b>OpenStreetMap2</b>แผนที่พื้นหลังใช้สำหรับอ้างอิงถนนและตำแหน่งที่ตั้งของจุดทดสอบ</div></div>
+<div class="measure"><span class="legend-check"></span><div><b>การเปิด–ปิดเลเยอร์</b>สามารถเปิดหรือปิดการแสดงผลแต่ละเลเยอร์ได้ โดยกดเครื่องหมายถูกที่ช่องสี่เหลี่ยมในกล่องรายการชั้นข้อมูลบนแผนที่ หากจุดสองชนิดซ้อนกัน สามารถซ่อนเลเยอร์ HVSR เพื่อเลือกวงกลมสีฟ้าที่อยู่ด้านล่างได้</div></div>
+</div>
+<div class="info-card"><h3>ความหมายของตัวแปรในจุดสำรวจ</h3>
+<div class="measure"><span class="num">f₀</span><div><b>ความถี่พื้นฐานของชั้นดิน (Hz)</b>ค่าความถี่พื้นฐานของชั้นดินที่ได้จากการวิเคราะห์การสั่นพื้นฐานของชั้นดิน</div></div>
+<div class="measure"><span class="num">T₀</span><div><b>คาบการสั่นพื้นฐานของชั้นดิน (s)</b>ค่าคาบการสั่นพื้นฐานของชั้นดินที่สัมพันธ์กับความถี่พื้นฐาน (T₀ = 1/f₀)</div></div>
+<div class="measure"><span class="num">H</span><div><b>ความสูงอาคารโดยประมาณ (m)</b>ความสูงอาคารโดยประมาณที่มีคาบการสั่นสอดคล้องกับชั้นดิน ไม่ใช่ความลึกของชั้นดิน</div></div>
+<div class="measure"><span class="num">Vs₃₀</span><div><b>ความเร็วคลื่นเฉือนเฉลี่ยในช่วงความลึก 30 เมตร (m/s)</b>ค่าความเร็วคลื่นเฉือนเฉลี่ยของชั้นดินในช่วงความลึก 0–30 เมตร ใช้ประกอบการพิจารณาคุณสมบัติของชั้นดินบริเวณตื้น</div></div>
+<div class="measure"><span class="num">Vs₁₀₀</span><div><b>ความเร็วคลื่นเฉือนเฉลี่ยในช่วงความลึก 100 เมตร (m/s)</b>ค่าความเร็วคลื่นเฉือนเฉลี่ยของชั้นดินในช่วงความลึก 0–100 เมตร ใช้ประกอบการศึกษาคุณสมบัติชั้นดินในระดับลึกขึ้น</div></div>
+<div class="measure"><span class="num">Vs</span><div><b>Image</b>รูปภาพกราฟแสดงการเปลี่ยนแปลงความเร็วคลื่นเฉือนตามความลึกของชั้นดิน Vs Profile</div></div>
+</div>
+<div class="side-foot">ได้รับการสนับสนุนจาก สกสว. · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></div>
+</div>
+</aside>
+</main>
+</div>
+<script>// These UI controls work even when QGIS/Leaflet assets are missing.
+        (function () {
+          const sidebar = document.getElementById('infoSidebar');
+          const toggle = document.getElementById('sideToggle');
+          const close = document.getElementById('sideClose');
+          function setOpen(open) {
+            sidebar.classList.toggle('closed', !open);
+            toggle.classList.toggle('closed', !open);
+            toggle.textContent = open ? '›' : '‹';
+            toggle.setAttribute('aria-expanded', String(open));
+            toggle.setAttribute('aria-label', open ? 'ปิดแผงข้อมูล' : 'เปิดแผงข้อมูล');
+            if (window.map && typeof window.map.invalidateSize === 'function') {
+              setTimeout(function () { window.map.invalidateSize(); }, 340);
+            }
+          }
+          toggle.addEventListener('click', function () {setOpen(sidebar.classList.contains('closed'));});
+          close.addEventListener('click', function () {setOpen(false);});
+        })();
+        </script>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/multi-style-layer.js"></script>
+        <script src="js/leaflet-svg-shape-markers.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="data/Bangkok_Districts_1.js"></script>
+        <script src="data/Testpoint_2.js"></script>
+        <script src="data/HVSR_3.js"></script>
+        <script>
+        function escMap(value){if(value===null||value===undefined||value==='')return '—';return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+        function mapRow(label,value){return '<tr><th>'+escMap(label)+'</th><td>'+escMap(value)+'</td></tr>';}
+        function mapGroupedRow(label,value){
+            var raw = (value === null || value === undefined) ? '' : String(value).trim();
+            // Group only lists of numeric values; preserve the original numbers.
+            var display = /^[-+]?\d+(?:\.\d+)?(?:\s*,\s*[-+]?\d+(?:\.\d+)?)+$/.test(raw)
+                ? '[' + raw.split(',').map(function(x){return x.trim();}).join(', ') + ']'
+                : value;
+            return mapRow(label,display);
+        }
+        // Open locally hosted shear-wave velocity profiles instead of ImgBB.
+        // IDs TP01..TP06 (and e.g. TP2_01_300) map to images/TP-01.png..TP-06.png.
+        function mapImageRow(value, pointId){
+            var raw = value == null ? '' : String(value).trim();
+            var candidates = raw.match(/https?:\/\/[^\s,;]+|(?:\.?\.?\/)?(?:images\/)?[^\s,;"'<>]+\.(?:png|jpe?g|gif|webp)(?:\?[^\s,;"'<>]*)?/gi) || [];
+            var validLinks = candidates.filter(function(url){
+                if (/^https?:\/\//i.test(url)) {
+                    try {var parsed = new URL(url); return parsed.protocol === 'https:' || parsed.protocol === 'http:';}
+                    catch(e){return false;}
+                }
+                return !/^\//.test(url) && !/\.\./.test(url);
+            });
+            var content = validLinks.length ? validLinks.map(function(url, i){
+                return '<a class="hvsr-image-link" href="'+escMap(url)+'" target="_blank" rel="noopener noreferrer">เปิดรูปภาพ Vs Profile'+(validLinks.length > 1 ? ' '+(i+1):'')+' ↗</a>';
+            }).join('<br>') : (raw ? escMap(raw) : '—');
+            return '<tr><th>Image</th><td>'+content+'</td></tr>';
+        }
+
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[13.47727074719245,100.20518817732518],[13.970945801573198,101.0626750742859]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    var img = popup._contentNode.querySelector('td img');
+                    if (img) {
+                        // If already loaded (cache), update immediately
+                        if (img.complete && img.naturalHeight > 0) {
+                            popup.update();
+                        } else {
+                            img.addEventListener('load', function() {
+                                popup.update();
+                            });
+                            img.addEventListener('error', function() {
+                                popup.update();
+                            });
+                        }
+                    }
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OpenStreetMap2_0');
+        map.getPane('pane_OpenStreetMap2_0').style.zIndex = 400;
+        var layer_OpenStreetMap2_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OpenStreetMap2_0',
+            opacity: 1.0,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        layer_OpenStreetMap2_0;
+        map.addLayer(layer_OpenStreetMap2_0);
+        function pop_Bangkok_Districts_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(String(feature.properties['OBJECTID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['water'] !== null ? autolinker.link(String(feature.properties['water']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['AREA'] !== null ? autolinker.link(String(feature.properties['AREA']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['dcode'] !== null ? autolinker.link(String(feature.properties['dcode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['dname'] !== null ? autolinker.link(String(feature.properties['dname']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['dname_e'] !== null ? autolinker.link(String(feature.properties['dname_e']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pcode'] !== null ? autolinker.link(String(feature.properties['pcode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_female'] !== null ? autolinker.link(String(feature.properties['no_female']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pname'] !== null ? autolinker.link(String(feature.properties['pname']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_male'] !== null ? autolinker.link(String(feature.properties['no_male']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_health'] !== null ? autolinker.link(String(feature.properties['no_health']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_temple'] !== null ? autolinker.link(String(feature.properties['no_temple']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_commu'] !== null ? autolinker.link(String(feature.properties['no_commu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_hos'] !== null ? autolinker.link(String(feature.properties['no_hos']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['no_sch'] !== null ? autolinker.link(String(feature.properties['no_sch']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Bangkok_Districts_1_0() {
+            return {
+                pane: 'pane_Bangkok_Districts_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(152,125,183,0.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Bangkok_Districts_1');
+        map.getPane('pane_Bangkok_Districts_1').style.zIndex = 401;
+        map.getPane('pane_Bangkok_Districts_1').style['mix-blend-mode'] = 'normal';
+        var layer_Bangkok_Districts_1 = new L.geoJson(json_Bangkok_Districts_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Bangkok_Districts_1',
+            layerName: 'layer_Bangkok_Districts_1',
+            pane: 'pane_Bangkok_Districts_1',
+            onEachFeature: pop_Bangkok_Districts_1,
+            style: style_Bangkok_Districts_1_0,
+        });
+        bounds_group.addLayer(layer_Bangkok_Districts_1);
+        map.addLayer(layer_Bangkok_Districts_1);
+        function pop_Testpoint_2(feature, layer) {
+            var p = feature.properties || {};
+            var content = '<div class="hvsr-pop-wrap"><div class="hvsr-pop-title">Test point · '+escMap(p.ID || 'จุดทดสอบ')+'</div>'+
+            '<table class="hvsr-pop-table">'+
+            mapRow('รหัสจุดทดสอบ',p.ID)+mapRow('ชื่อจุดทดสอบ',p.Name)+
+            mapRow('UTM_N',p.UTM_N)+mapRow('UTM_E',p.UTM_E)+
+            '</table></div>';
+            layer.bindPopup(content,{maxWidth:420,minWidth:290,maxHeight:410,closeButton:true,autoPan:true});
+        }
+
+        function style_Testpoint_2_0() {
+            return {
+                pane: 'pane_Testpoint_2',
+                radius: 8.0,
+                opacity: 1,
+                color: 'rgba(50,87,128,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(72,123,182,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Testpoint_2');
+        map.getPane('pane_Testpoint_2').style.zIndex = 402;
+        map.getPane('pane_Testpoint_2').style['mix-blend-mode'] = 'normal';
+        var layer_Testpoint_2 = new L.geoJson(json_Testpoint_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Testpoint_2',
+            layerName: 'layer_Testpoint_2',
+            pane: 'pane_Testpoint_2',
+            onEachFeature: pop_Testpoint_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_Testpoint_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Testpoint_2);
+        map.addLayer(layer_Testpoint_2);
+        function pop_HVSR_3(feature, layer) {
+            var p = feature.properties || {};
+            var content = '<div class="hvsr-pop-wrap"><div class="hvsr-pop-title">HVSR · '+escMap(p.ID || 'จุดสำรวจ')+'</div>'+
+            '<table class="hvsr-pop-table">'+
+            mapRow('รหัสจุดสำรวจ',p.ID)+mapRow('ชื่อจุดสำรวจ',p.Name)+
+            mapRow('UTM_E',p.UTM_E)+mapRow('UTM_N',p.UTM_N)+
+            mapGroupedRow('ความถี่พื้นฐาน f₀ (Hz)',p['f0 (HZ)'])+
+            mapGroupedRow('คาบพื้นฐาน T₀ (s)',p['T0 (s)'])+
+            mapGroupedRow('ความสูงอาคารโดยประมาณ H (m)',p['H (m)'])+
+            mapRow('Vs30 (m/s)',p['Vs30 (m/s)'])+
+            mapRow('Vs100 (m/s)',p['Vs100(m/s)'])+
+            mapImageRow(p.Image,p.ID)+
+            '</table></div>';
+            layer.bindPopup(content,{maxWidth:420,minWidth:300,maxHeight:440,closeButton:true,autoPan:true});
+        }
+
+        function style_HVSR_3_0() {
+            return {
+                pane: 'pane_HVSR_3',
+                radius: 9.16666,
+                opacity: 1,
+                color: 'rgba(184,8,8,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,8,8,1.0)',
+                interactive: true,
+            }
+        }
+        function style_HVSR_3_1() {
+            return {
+                pane: 'pane_HVSR_3',
+                radius: 10.0,
+                opacity: 1,
+                color: 'rgba(255,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,0,0,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_HVSR_3');
+        map.getPane('pane_HVSR_3').style.zIndex = 403;
+        map.getPane('pane_HVSR_3').style['mix-blend-mode'] = 'normal';
+        var layer_HVSR_3 = new L.geoJson.multiStyle(json_HVSR_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_HVSR_3',
+            layerName: 'layer_HVSR_3',
+            pane: 'pane_HVSR_3',
+            onEachFeature: pop_HVSR_3,
+            pointToLayers: [function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.shapeMarker(latlng, style_HVSR_3_0(feature));
+            },function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.shapeMarker(latlng, style_HVSR_3_1(feature));
+            },
+        ]});
+        bounds_group.addLayer(layer_HVSR_3);
+        map.addLayer(layer_HVSR_3);
+        var overlaysTree = [
+            {label: '<img src="legend/HVSR_3.png" /> HVSR', layer: layer_HVSR_3},
+            {label: '<img src="legend/Testpoint_2.png" /> Test point', layer: layer_Testpoint_2},
+            {label: '<img src="legend/Bangkok_Districts_1.png" /> Bangkok_Districts', layer: layer_Bangkok_Districts_1},
+            {label: "OpenStreetMap2", layer: layer_OpenStreetMap2_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        </script>        
+    </body>
+</html>
