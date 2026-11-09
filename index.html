@@ -122,9 +122,17 @@
                 : value;
             return mapRow(label,display);
         }
-        // Open locally hosted shear-wave velocity profiles instead of ImgBB.
-        // IDs TP01..TP06 (and e.g. TP2_01_300) map to images/TP-01.png..TP-06.png.
+        // Attach the existing images/TP-01.png through TP-06.png to HVSR points.
+        // Works for IDs TP1, TP01, TP-01, TP_01, TP 01 (including TP5 in the screenshot).
+        // Keep original external or relative links for other points.
         function mapImageRow(value, pointId){
+            var id = pointId == null ? '' : String(pointId).trim();
+            var match = /^TP[\s_-]*0?([1-6])(?=$|[\s_-])/i.exec(id);
+            if (match) {
+                var fileName = 'TP-0' + match[1] + '.png';
+                var path = 'images/' + fileName;
+                return '<tr><th>Image</th><td><a class="hvsr-image-link" href="'+path+'" target="_blank" rel="noopener noreferrer">เปิดรูปภาพ Vs Profile ('+fileName.replace(/\.png$/, '')+') ↗</a></td></tr>';
+            }
             var raw = value == null ? '' : String(value).trim();
             var candidates = raw.match(/https?:\/\/[^\s,;]+|(?:\.?\.?\/)?(?:images\/)?[^\s,;"'<>]+\.(?:png|jpe?g|gif|webp)(?:\?[^\s,;"'<>]*)?/gi) || [];
             var validLinks = candidates.filter(function(url){
